@@ -31,49 +31,32 @@ const handleDragOver = (event) => {
     updateDraggingHtml({ over: column })
 }
 
- const addOn = document.querySelector('[button button_primary]');
- addOn.addEventListener('click',() => {
-    event.preventDefault()
-    html.add.overlay.open
- });
-
 const handleDragStart = (event) => {}
 const handleDragEnd = (event) => {}
 
 const handleHelpToggle = (event) => {
+        event.preventDefault();
+        if (html.help.overlay.display === "none") {
+            html.help.overlay.display = "block";
+        } else {
+            html.help.overlay.display = "none";
+        }
+    };
+
+const handleAddToggle = (event) => { 
     event.preventDefault()
-
-}
-
-const handleAddToggle =
-    (event) => {
-        event.preventDefault()
-        if (html.add.overlay.open()){
-            html.add.overlay.close()
-        }else{
-        html.add.overlay.show()
-    }}
-const handleAddSubmit = (event) => {
-    event.preventDefault()
-    const title = html.add.form.title.value;
-    const table = html.add.form.table.value;
-    if(!title || !table ) return
-const newOrder = createOrderData(
-    { title,
-    table,
-    column : 'ordered'}
-)
-state.orders[newOrder.id] = newOrder
-html.add.overlay.close()
-html.columns.ordered.appendChild(createOrderHtml(newOrder))
-
+    handleAddToggle.focus();
+    document.addEventListener("keydown", function(event) {
+        if (event.keyCode === 32 || event.keyCode === 13) {
+            addButton.click();
+        }
+    });
 }
 const handleEditToggle = (event) => {}
 const handleEditSubmit = (event) => {}
 const handleDelete = (event) => {}
 
-const addForm = document.getElementById("add-form");
-addForm.addEventListener("submit", function(event) {
+const handleAddSubmit =(event) => {
     event.preventDefault(); 
     const title = html.add.form.title.value;
     const table = html.add.form.table.value;
@@ -89,20 +72,7 @@ addForm.addEventListener("submit", function(event) {
     state.orders[newOrder.id] = newOrder;
     html.add.overlay.close();
     html.columns.ordered.appendChild(createOrderHtml(newOrder));
-});
-
-const addButton = document.querySelector('[button button_primary]');
-document.addEventListener("keydown", function(event) {
-    if (event.keyCode === 32 || event.keyCode === 13) {
-        addButton.click();
-    }
-});
-
-function handleAddButtonClick() {
-   createOrderData()
-}
-addButton.addEventListener("click", handleAddButtonClick);
-
+};
 
 
 html.add.cancel.addEventListener('click', handleAddToggle)
