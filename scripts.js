@@ -9,9 +9,9 @@
  *
  * @param {Event} event 
  */
-import { createOrderData, state, updateDragging } from "./data";
-import { createOrderHtml, html,moveToColumn,updateDraggingHtml } from "./view";
+import { createOrderData, state } from './data.js'
 
+import { createOrderHtml, html } from './view.js'
 
 const handleDragOver = (event) => {
     event.preventDefault();
@@ -31,49 +31,70 @@ const handleDragOver = (event) => {
     updateDraggingHtml({ over: column })
 }
 
+
 const handleDragStart = (event) => {}
 const handleDragEnd = (event) => {}
 
 const handleHelpToggle = (event) => {
         event.preventDefault();
-        if (html.help.overlay.display === "none") {
-            html.help.overlay.display = "block";
+        if (html.help.overlay.open) {
+            html.help.overlay.close();
         } else {
-            html.help.overlay.display = "none";
+            html.help.overlay.showModal(); // Show the overlay
         }
     };
+    
 
-const handleAddToggle = (event) => { 
+const handleAddToggle = (event) => {
     event.preventDefault()
-    handleAddToggle.focus();
-    document.addEventListener("keydown", function(event) {
-        if (event.keyCode === 32 || event.keyCode === 13) {
-            addButton.click();
-        }
-    });
-}
-const handleEditToggle = (event) => {}
-const handleEditSubmit = (event) => {}
-const handleDelete = (event) => {}
-
-const handleAddSubmit =(event) => {
-    event.preventDefault(); 
-    const title = html.add.form.title.value;
-    const table = html.add.form.table.value;
-    if (!title || !table) {
-        alert("Please fill in both title and table.");
-        return;
+    if (html.add.overlay.display) {
+        html.add.overlay.display
+    } else {
+        html.add.overlay.show()
     }
-    const newOrder = createOrderData({
-        title,
-        table,
-        column: "ordered"
-    });
-    state.orders[newOrder.id] = newOrder;
-    html.add.overlay.close();
-    html.columns.ordered.appendChild(createOrderHtml(newOrder));
-};
+}
 
+html.add
+const handleAddSubmit = (event) => {
+    event.preventDefault()
+    const title = html.add.form.title.value
+    const table = html.add.form.table.value
+
+    if (!title || !table) return
+    const newOrder = createOrderData({
+        title, 
+        table,
+        column: 'ordered'
+    })
+    state.orders[newOrder.id] = newOrder 
+    html.add.overlay.close()
+    html.columns.ordered.appendChild(createOrderHtml(newOrder))
+}
+
+// Here I will mount the cards to columns based off the state
+// console.log("State: ",  state)
+const overlay = document.querySelector('[data-edit-overlay]');
+const handleEditToggle = (event) => {
+    event.preventDefault()
+    overlay.classList.toggle('visible')
+}
+const handleEditSubmit = (event) => {
+    event.preventDefault();
+
+    const itemId = html.edit.id.value; 
+    const itemTitle = html.edit.title.value;
+    const selectedTable = html.edit.table.value;
+    const selectedStatus = html.edit.column.value;
+  
+    state.orders[itemId].title = itemTitle;
+    state.orders[itemId].table = selectedTable;
+    state.orders[itemId].column = selectedStatus;
+    handleEditToggle();
+  };
+
+const handleDelete = (event) => {
+    const orderId = html.edit.id.value;
+    handleEditToggle();}
 
 html.add.cancel.addEventListener('click', handleAddToggle)
 html.other.add.addEventListener('click', handleAddToggle)
