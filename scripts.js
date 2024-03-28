@@ -9,9 +9,9 @@
  *
  * @param {Event} event 
  */
-import { createOrderData, state } from './data.js'
+import { COLUMNS, createOrderData, state, updateDragging } from './data.js'
 
-import { createOrderHtml, html } from './view.js'
+import { createOrderHtml, html,moveToColumn } from './view.js'
 
 const handleDragOver = (event) => {
     event.preventDefault();
@@ -32,8 +32,16 @@ const handleDragOver = (event) => {
 }
 
 
-const handleDragStart = (event) => {}
-const handleDragEnd = (event) => {}
+const handleDragStart = (event) => {
+    const {id} = event.target.dataset;
+    const {column} = state.orders[id];
+    updateDragging({source:id,over:column})
+}
+const handleDragEnd = (event) => {
+    event.preventDefault();
+    const {source,over} = state.dragging
+    moveToColumn(source,over);
+}
 
 const handleHelpToggle = (event) => {
         event.preventDefault();
@@ -71,30 +79,50 @@ const handleAddSubmit = (event) => {
     html.columns.ordered.appendChild(createOrderHtml(newOrder))
 }
 
-// Here I will mount the cards to columns based off the state
-// console.log("State: ",  state)
-const overlay = document.querySelector('[data-edit-overlay]');
 const handleEditToggle = (event) => {
-    event.preventDefault()
-    overlay.classList.toggle('visible')
-}
+    const parentElement = event.target.closest('.order');
+    if (parentElement && parentElement.matches(".order")) {
+        const id = parentElement.getAttribute('data-id');
+        const order = state.orders[id];
+
+        // Update the form values with the order data
+        html.edit.form.id.value = id;
+        html.edit.form.title.value = order.itemTitle;
+        html.edit.form.table.value = order.selectedTable;
+        html.edit.form.column.value = order.selectedStatus;
+    }
+
+    // Close the edit overlay if cancel button is clicked
+    if (event.target.getAttribute('data-edit-cancel')) {
+        html.edit.overlay.open = false;
+    }
+};
+
 const handleEditSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent the default form submission
 
-    const itemId = html.edit.id.value; 
-    const itemTitle = html.edit.title.value;
-    const selectedTable = html.edit.table.value;
-    const selectedStatus = html.edit.column.value;
+    // Clear the current HTML in each column
+    Object.values(html.columns).forEach(column => {
+        column.innerHTML = "";
+    });
+
+    // Rebuild the HTML for each order and append to the respective column
+    Object.values(state.orders).forEach(order => {
+        const element = createOrderHtml(order);
+        html.columns[order.column].appendChild(element);
+    });
+
+    // Reset the form and close the edit overlay
+    html.edit.form.reset();
+    html.edit.overlay.removeAttribute('open');
+};
+
   
-    state.orders[itemId].title = itemTitle;
-    state.orders[itemId].table = selectedTable;
-    state.orders[itemId].column = selectedStatus;
-    handleEditToggle();
-  };
-
 const handleDelete = (event) => {
-    const orderId = html.edit.id.value;
-    handleEditToggle();}
+    event.preventDefault()
+     const id = html.edit.id.getAttribute('data-edit-id');
+     delete state.orders[id]; 
+     handleEditSubmit();}
 
 html.add.cancel.addEventListener('click', handleAddToggle)
 html.other.add.addEventListener('click', handleAddToggle)
